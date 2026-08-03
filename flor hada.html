@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cherry O Flor - Edición Tinkerbell, Periwinkle y Gruff</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Great+Vibes&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Quicksand', sans-serif;
+      overflow: hidden;
+      transition: background 1.5s ease;
+    }
+
+    body.theme-purple {
+      background: radial-gradient(circle at center, #f3e5f5, #ab47bc, #311b92);
+    }
+
+    body.theme-pink {
+      background: radial-gradient(circle at center, #ffb6c1, #ff69b4, #ff1493);
+    }
+
+    body.theme-sunset {
+      background: radial-gradient(circle at center, #ffe6ea, #ff758f, #c71585);
+    }
+
+    body.theme-night {
+      background: radial-gradient(circle at center, #4a0e2e, #2a081a, #12020a);
+    }
+
+    body.theme-winter {
+      background: radial-gradient(circle at center, #fff0f5, #ffccd5, #ff9ebb);
+    }
+
+    #particleCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .controls-container {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 20;
+      display: flex;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 6px 10px;
+      border-radius: 30px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 4px 15px rgba(255, 77, 109, 0.15);
+    }
+
+    .btn-control {
+      background: rgba(255, 240, 243, 0.9);
+      border: 1px solid #ff8fa3;
+      border-radius: 20px;
+      padding: 6px 12px;
+      color: #c71585;
+      font-weight: 700;
+      font-size: 0.78em;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+
+    .btn-control.active {
+      background: linear-gradient(45deg, #ff4d6d, #ff758f);
+      color: white;
+      border-color: #ffd700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    }
+
+    body.theme-purple .btn-control.active {
+      background: linear-gradient(45deg, #ab47bc, #8e24aa);
+      border-color: #ffd700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    }
+
+    .btn-control:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .main-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 2;
+      perspective: 1000px;
+      position: relative;
+      margin-top: 20px;
+    }
+
+    .flower-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.2s ease-out;
+    }
+
+    .poem-cloud {
+      position: absolute;
+      background: rgba(255, 240, 243, 0.95);
+      padding: 14px 22px;
+      border-radius: 40px;
+      box-shadow: 0 8px 20px rgba(255, 77, 109, 0.2);
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.3em;
+      color: #c71585;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 5;
+      backdrop-filter: blur(6px);
+      border: 2px solid #ffccd5;
+      max-width: 240px;
+      line-height: 1.25;
+      transition: all 0.4s ease;
+    }
+
+    body.theme-purple .poem-cloud {
+      background: rgba(243, 229, 245, 0.95);
+      color: #4a148c;
+      border: 2px solid #ce93d8;
+    }
+
+    .poem-cloud::before, .poem-cloud::after {
+      content: '';
+      position: absolute;
+      background: inherit;
+      border-radius: 50%;
+    }
+    .poem-cloud::before {
+      width: 30px;
+      height: 30px;
+      top: -12px;
+      left: 20px;
+    }
+    .poem-cloud::after {
+      width: 38px;
+      height: 38px;
+      top: -16px;
+      right: 22px;
+    }
+
+    .flower {
+      position: relative;
+      width: 8.5cm;
+      height: 8.5cm;
+      cursor: pointer;
+    }
+
+    .petal {
+      position: absolute;
+      width: 6cm;
+      height: 8.5cm;
+      background: radial-gradient(circle at center, #ffc2d1 0%, #ff4d6d 70%, #c71585 100%);
+      border-radius: 60% 60% 60% 60%;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(0deg);
+      opacity: 0.95;
+      filter: drop-shadow(0 6px 15px rgba(255, 77, 109, 0.4));
+      transition: background 1s ease, filter 1s ease;
+    }
+
+    body.theme-purple .petal {
+      background: radial-gradient(circle at center, #f3e5f5 0%, #ab47bc 65%, #4a148c 100%);
+      filter: drop-shadow(0 6px 20px rgba(171, 71, 188, 0.7));
+    }
+
+    .petal:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg); }
+    .petal:nth-child(2) { transform: translate(-50%, -50%) rotate(45deg); }
+    .petal:nth-child(3) { transform: translate(-50%, -50%) rotate(90deg); }
+    .petal:nth-child(4) { transform: translate(-50%, -50%) rotate(135deg); }
+    .petal:nth-child(5) { transform: translate(-50%, -50%) rotate(180deg); }
+    .petal:nth-child(6) { transform: translate(-50%, -50%) rotate(225deg); }
+    .petal:nth-child(7) { transform: translate(-50%, -50%) rotate(270deg); }
+    .petal:nth-child(8) { transform: translate(-50%, -50%) rotate(315deg); }
+
+    .center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 2.4cm;
+      height: 2.4cm;
+      background: radial-gradient(circle at 30% 30%, #ffffff, #ffe6eb 40%, #ff4d6d 100%);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      box-shadow: 0 0 20px rgba(255, 77, 109, 0.8);
+      transition: background 1s ease, box-shadow 1s ease;
+    }
+
+    body.theme-purple .center {
+      background: radial-gradient(circle at 30% 30%, #ffffff, #f3e5f5 40%, #8e24aa 100%);
+      box-shadow: 0 0 25px rgba(171, 71, 188, 0.9);
+    }
+
+    .glow-ripple {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 2cm;
+      height: 2cm;
+      border-radius: 50%;
+      background: rgba(255, 179, 193, 0.8);
+      transform: translate(-50%, -50%) scale(0);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .message {
+      position: absolute;
+      top: -2.3cm;
+      left: 50%;
+      transform: translateX(-50%) translateY(1.5cm);
+      background: rgba(255, 240, 243, 0.95);
+      padding: 0.5cm 1.2cm;
+      border-radius: 35px;
+      font-family: 'Great Vibes', cursive;
+      font-size: 2.1em;
+      color: #d81b60;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 8px 25px rgba(255, 77, 109, 0.25);
+      white-space: nowrap;
+      border: 2px solid #ffb3c1;
+      backdrop-filter: blur(5px);
+      z-index: 6;
+      transition: all 0.5s ease;
+    }
+
+    body.theme-purple .message {
+      background: rgba(243, 229, 245, 0.95);
+      color: #4a148c;
+      border-color: #ce93d8;
+    }
+
+    .stem {
+      width: 0.55cm;
+      height: 7cm;
+      background: linear-gradient(to bottom, #88d49e, #2e7d32);
+      border-radius: 0.3cm;
+      position: relative;
+      top: -0.3cm;
+      box-shadow: inset -2px 0 5px rgba(0,0,0,0.2);
+    }
+
+    .leaf {
+      position: absolute;
+      width: 3.8cm;
+      height: 1.9cm;
+      background: radial-gradient(circle at 30% 30%, #a8e6cf, #388e3c);
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .leaf.left {
+      left: -3.3cm;
+      top: 1.8cm;
+      transform: rotate(-25deg);
+    }
+
+    .leaf.right {
+      right: -3.3cm;
+      top: 4.2cm;
+      transform: rotate(25deg);
+    }
+
+    .pot {
+      width: 3cm;
+      height: 1.2cm;
+      background: linear-gradient(135deg, #ffb3c1, #ff4d6d);
+      border-radius: 0 0 18px 18px;
+      margin-top: -0.5cm;
+      box-shadow: 0 10px 20px rgba(255, 77, 109, 0.25);
+      position: relative;
+      z-index: 2;
+      transition: background 0.5s ease;
+    }
+
+    body.theme-purple .pot {
+      background: linear-gradient(135deg, #ce93d8, #8e24aa);
+    }
+
+    /* --- NOMBRES DE PERSONAJES --- */
+    .character-label {
+      position: absolute;
+      bottom: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Dancing Script', cursive;
+      font-size: 0.9em;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      backdrop-filter: blur(4px);
+    }
+
+    /* --- TINKERBELL --- */
+    .tinkerbell-wrapper {
+      position: absolute;
+      top: 0.2cm;
+      right: -3.2cm;
+      width: 70px;
+      height: 80px;
+      cursor: pointer;
+      z-index: 10;
+      animation: fairyFloat 3.5s ease-in-out infinite;
+      filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.7));
+      transition: transform 0.3s ease;
+    }
+
+    .tinkerbell-wrapper:hover {
+      transform: scale(1.15) rotate(-5deg);
+    }
+
+    .tinkerbell-wrapper .character-label {
+      background: rgba(255, 255, 240, 0.9);
+      color: #2e7d32;
+      border: 1px solid #aed581;
+    }
+
+    .tinkerbell-svg .wing {
+      transform-origin: 38px 42px;
+      animation: wingFlutter 0.18s ease-in-out infinite alternate;
+    }
+
+    /* --- PERIWINKLE (Hada de Hielo) --- */
+    .periwinkle-wrapper {
+      position: absolute;
+      top: 0.2cm;
+      left: -3.2cm;
+      width: 70px;
+      height: 80px;
+      cursor: pointer;
+      z-index: 10;
+      animation: fairyFloatLeft 3.8s ease-in-out infinite;
+      filter: drop-shadow(0 0 10px rgba(127, 219, 255, 0.85));
+      transition: transform 0.3s ease;
+    }
+
+    .periwinkle-wrapper:hover {
+      transform: scale(1.15) rotate(5deg);
+    }
+
+    .periwinkle-wrapper .character-label {
+      background: rgba(224, 247, 250, 0.9);
+      color: #00838f;
+      border: 1px solid #80deea;
+    }
+
+    .periwinkle-svg .wing {
+      transform-origin: 42px 42px;
+      animation: wingFlutter 0.16s ease-in-out infinite alternate;
+    }
+
+    @keyframes fairyFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-12px) rotate(4deg); }
+    }
+
+    @keyframes fairyFloatLeft {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-14px) rotate(-4deg); }
+    }
+
+    @keyframes wingFlutter {
+      0% { transform: scaleX(1) scaleY(1); opacity: 0.9; }
+      100% { transform: scaleX(0.4) scaleY(0.85); opacity: 0.6; }
+    }
+
+    /* --- GRUFF OFICIAL --- */
+    .gruff-wrapper {
+      position: absolute;
+      top: 2.8cm;
+      right: -4.8cm;
+      width: 135px;
+      height: 115px;
+      cursor: pointer;
+      z-index: 9;
+      animation: gruffBreath 4s ease-in-out infinite;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+      transition: transform 0.3s ease;
+    }
+
+    .gruff-wrapper:hover {
+      transform: scale(1.08);
+    }
+
+    .gruff-wrapper .character-label {
+      background: rgba(240, 240, 240, 0.9);
+      color: #313131;
+      border: 1px solid #76ff03;
+      bottom: -12px;
+    }
+
+    .gruff-svg .gruff-tail {
+      transform-origin: 110px 75px;
+      animation: tailWag 3s ease-in-out infinite alternate;
+    }
+
+    .gruff-svg .gruff-eye {
+      animation: eyeGlow 2.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes gruffBreath {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-3px) scale(1.015); }
+    }
+
+    @keyframes tailWag {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(15deg); }
+    }
+
+    @keyframes eyeGlow {
+      0% { fill: #00e676; filter: drop-shadow(0 0 2px #00e676); }
+      100% { fill: #76ff03; filter: drop-shadow(0 0 8px #76ff03); }
+    }
+
+    /* --- ESTILO PARA BRILLOS --- */
+    .sparkle-particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 30;
+      animation: animateSparkle 0.8s ease-out forwards;
+    }
+
+    @keyframes animateSparkle {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--x), var(--y)) scale(0);
+      }
+    }
+
+    .letter-trigger {
+      margin-top: 18px;
+      background: linear-gradient(45deg, #ff4d6d, #ff758f);
+      color: white;
+      border: 2px solid #ffb3c1;
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-size: 0.95em;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    body.theme-purple .letter-trigger {
+      background: linear-gradient(45deg, #ab47bc, #8e24aa);
+      border-color: #e1bee7;
+    }
+
+    .letter-trigger:hover {
+      transform: translateY(-2px) scale(1.03);
+    }
+
+    /* --- MODAL DE LA CARTA CON SCROLL MEJORADO --- */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(20, 5, 15, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .letter-card {
+      background: linear-gradient(135deg, #ffffff, #fff0f3);
+      width: 90%;
+      max-width: 480px;
+      max-height: 85vh;
+      padding: 30px 25px;
+      border-radius: 25px;
+      border: 2px solid #ffb3c1;
+      box-shadow: 0 15px 40px rgba(255, 77, 109, 0.25);
+      text-align: center;
+      position: relative;
+      transform: scale(0.8);
+      transition: transform 0.4s ease;
+      overflow-y: auto;
+    }
+
+    body.theme-purple .letter-card {
+      background: linear-gradient(135deg, #ffffff, #f3e5f5);
+      border-color: #ce93d8;
+    }
+
+    .modal-overlay.active .letter-card {
+      transform: scale(1);
+    }
+
+    .letter-card h2 {
+      font-family: 'Great Vibes', cursive;
+      font-size: 2.8em;
+      color: #ff4d6d;
+      margin: 0 0 15px 0;
+    }
+
+    body.theme-purple .letter-card h2 {
+      color: #8e24aa;
+    }
+
+    .letter-content {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.35em;
+      color: #333;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    .letter-content p {
+      margin-bottom: 15px;
+    }
+
+    .poem-box {
+      background: rgba(255, 255, 255, 0.7);
+      border-left: 3px solid #ff4d6d;
+      padding: 10px 15px;
+      margin: 15px 0;
+      font-style: italic;
+      border-radius: 8px;
+    }
+
+    body.theme-purple .poem-box {
+      border-left-color: #8e24aa;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      background: rgba(255, 77, 109, 0.1);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1.1em;
+      color: #ff4d6d;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .shaped-dust {
+      position: fixed;
+      font-size: 18px;
+      pointer-events: none;
+      z-index: 15;
+      user-select: none;
+      filter: drop-shadow(0 0 4px rgba(255, 105, 180, 0.8));
+    }
+
+    @media (max-width: 650px) {
+      .controls-container {
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 95%;
+        justify-content: center;
+        overflow-x: auto;
+      }
+      .btn-control {
+        padding: 5px 9px;
+        font-size: 0.72em;
+      }
+      .tinkerbell-wrapper {
+        right: -0.6cm;
+        top: 0.8cm;
+        width: 55px;
+        height: 65px;
+      }
+      .periwinkle-wrapper {
+        left: -0.6cm;
+        top: 0.8cm;
+        width: 55px;
+        height: 65px;
+      }
+      .gruff-wrapper {
+        right: -1.2cm;
+        top: 2.5cm;
+        width: 95px;
+        height: 80px;
+      }
+      .main-wrapper {
+        margin-top: 40px;
+      }
+    }
+  </style>
+</head>
+<body class="theme-purple">
+
+  <div class="controls-container">
+    <button class="btn-control active" id="btnPurple">💜 Morado (Fav)</button>
+    <button class="btn-control" id="btnPink">💖 Rosa Hada</button>
+    <button class="btn-control" id="btnSunset">🌅 Atardecer</button>
+    <button class="btn-control" id="btnNight">🌙 Noche</button>
+    <button class="btn-control" id="btnWinter">❄️ Invierno</button>
+  </div>
+
+  <canvas id="particleCanvas"></canvas>
+
+  <div class="main-wrapper" id="mainWrapper">
+    <div class="poem-cloud" id="poemCloud">☁️</div>
+
+    <div class="flower-container" id="flowerContainer">
+      <div class="flower" id="flower">
+        <div class="petal"></div><div class="petal"></div><div class="petal"></div><div class="petal"></div>
+        <div class="petal"></div><div class="petal"></div><div class="petal"></div><div class="petal"></div>
+        <div class="center" id="center"></div>
+        <div class="glow-ripple" id="ripple"></div>
+        <div class="message" id="message">Hola ❤️</div>
+
+        <!-- PERIWINKLE (HADA DE HIELO) -->
+        <div class="periwinkle-wrapper" id="periwinkle" title="¡Haz clic en Periwinkle para magia helada!">
+          <svg class="periwinkle-svg" viewBox="0 0 100 120" width="100%" height="100%">
+            <g class="wing">
+              <path d="M 38,42 C 10,15 0,35 25,55 C 35,62 38,45 38,42 Z" fill="rgba(224, 247, 250, 0.85)" stroke="#80deea" stroke-width="1.2"/>
+              <path d="M 38,48 C 15,50 10,75 32,70 C 37,68 38,52 38,48 Z" fill="rgba(207, 216, 220, 0.7)" stroke="#b2ebf2" stroke-width="1"/>
+            </g>
+            <g class="wing" style="animation-delay: -0.08s;">
+              <path d="M 42,42 C 70,15 80,35 55,55 C 45,62 42,45 42,42 Z" fill="rgba(224, 247, 250, 0.85)" stroke="#80deea" stroke-width="1.2"/>
+              <path d="M 42,48 C 65,50 70,75 48,70 C 43,68 42,52 42,48 Z" fill="rgba(207, 216, 220, 0.7)" stroke="#b2ebf2" stroke-width="1"/>
+            </g>
+            <path d="M 36,45 C 34,58 38,72 40,82 L 44,82 C 46,72 50,58 48,45 Z" fill="#b2ebf2"/>
+            <path d="M 35,46 L 28,60 L 37,55 L 40,62 L 43,55 L 52,60 L 49,46 Z" fill="#4dd0e1"/>
+            <circle cx="42" cy="34" r="7" fill="#ffe0b2"/>
+            <path d="M 34,30 C 32,18 42,16 44,22 C 48,15 54,24 49,32 C 44,28 38,28 34,30 Z" fill="#ffffff" filter="drop-shadow(0 0 2px #b2ebf2)"/>
+            <path d="M 36,25 L 34,15 L 41,20 L 44,12 L 47,21 L 52,16 L 48,26 Z" fill="#f5f5f5"/>
+            <line x1="36" y1="48" x2="18" y2="30" stroke="#80deea" stroke-width="1.5" stroke-linecap="round"/>
+            <polygon points="18,26 20,30 24,30 21,33 22,37 18,34 14,37 15,33 12,30 16,30" fill="#ffffff" filter="drop-shadow(0 0 4px #00e5ff)"/>
+          </svg>
+          <span class="character-label">Periwinkle</span>
+        </div>
+
+        <!-- TINKERBELL -->
+        <div class="tinkerbell-wrapper" id="tinkerbell" title="¡Haz clic en Campanilla para ver magia!">
+          <svg class="tinkerbell-svg" viewBox="0 0 100 120" width="100%" height="100%">
+            <g class="wing">
+              <path d="M 38,42 C 10,15 0,35 25,55 C 35,62 38,45 38,42 Z" fill="rgba(255, 255, 255, 0.75)" stroke="#ffd700" stroke-width="1.2"/>
+              <path d="M 38,48 C 15,50 10,75 32,70 C 37,68 38,52 38,48 Z" fill="rgba(255, 240, 245, 0.65)" stroke="#ffb3c1" stroke-width="1"/>
+            </g>
+            <g class="wing" style="animation-delay: -0.09s;">
+              <path d="M 42,42 C 70,15 80,35 55,55 C 45,62 42,45 42,42 Z" fill="rgba(255, 255, 255, 0.75)" stroke="#ffd700" stroke-width="1.2"/>
+              <path d="M 42,48 C 65,50 70,75 48,70 C 43,68 42,52 42,48 Z" fill="rgba(255, 240, 245, 0.65)" stroke="#ffb3c1" stroke-width="1"/>
+            </g>
+            <path d="M 36,45 C 34,58 38,72 40,82 L 44,82 C 46,72 50,58 48,45 Z" fill="#aed581"/>
+            <path d="M 35,46 L 28,60 L 37,55 L 40,62 L 43,55 L 52,60 L 49,46 Z" fill="#81c784"/>
+            <circle cx="42" cy="34" r="7" fill="#ffe0b2"/>
+            <path d="M 36,32 C 36,24 48,24 48,32 C 45,28 39,28 36,32 Z" fill="#ffe082"/>
+            <circle cx="44" cy="23" r="5" fill="#ffd54f"/>
+            <circle cx="46" cy="21" r="2" fill="#fff9c4"/>
+            <line x1="48" y1="48" x2="68" y2="30" stroke="#ffd700" stroke-width="1.5" stroke-linecap="round"/>
+            <polygon points="68,26 70,30 74,30 71,33 72,37 68,34 64,37 65,33 62,30 66,30" fill="#ffffff" filter="drop-shadow(0 0 3px #ffd700)"/>
+          </svg>
+          <span class="character-label">Tinkerbell</span>
+        </div>
+
+        <!-- GRUFF OFICIAL -->
+        <div class="gruff-wrapper" id="gruff" title="¡Haz clic en Gruff, la Bestia de Nunca Jamás!">
+          <svg class="gruff-svg" viewBox="0 0 150 130" width="100%" height="100%">
+            <path class="gruff-tail" d="M 112,80 C 135,70 142,98 125,102 C 115,98 110,88 112,80 Z" fill="#58595b"/>
+            <path class="gruff-tail" d="M 125,102 C 130,105 132,112 124,115" stroke="#414042" stroke-width="3" fill="none"/>
+            <ellipse cx="102" cy="92" rx="16" ry="20" fill="#414042"/>
+            <path d="M 92,108 L 112,108 C 112,114 92,114 92,108 Z" fill="#231f20"/>
+            <path d="M 35,62 C 40,42 90,40 108,60 C 115,80 105,105 70,105 C 42,105 32,85 35,62 Z" fill="#6d6e71"/>
+            <path d="M 38,58 C 45,35 88,36 102,52 C 85,85 45,85 38,58 Z" fill="#58595b"/>
+            <path d="M 42,42 C 55,30 80,32 95,45 C 80,42 55,40 42,42 Z" fill="#808285"/>
+            <rect x="42" y="82" width="16" height="26" rx="8" fill="#414042"/>
+            <rect x="64" y="85" width="15" height="24" rx="7" fill="#313131"/>
+            <path d="M 18,45 C 18,22 62,22 62,45 C 65,68 15,68 18,45 Z" fill="#58595b"/>
+            <path d="M 22,35 C 32,20 52,20 58,35 C 48,30 32,30 22,35 Z" fill="#808285"/>
+            <ellipse cx="28" cy="54" rx="12" ry="9" fill="#939598"/>
+            <path d="M 22,50 C 25,48 30,48 32,50 C 30,55 24,55 22,50 Z" fill="#313131"/>
+            <path d="M 26,58 L 28,62 L 30,58 Z" fill="#ffffff"/>
+            <circle class="gruff-eye" cx="38" cy="42" r="5" fill="#00e676"/>
+            <circle cx="37" cy="41" r="1.5" fill="#ffffff"/>
+            <path d="M 18,32 C 12,28 14,38 20,36 Z" fill="#414042"/>
+            <path d="M 24,28 C 14,18 10,30 20,32 Z" fill="#313131"/>
+            <path d="M 52,28 C 62,18 66,30 56,32 Z" fill="#313131"/>
+            <path d="M 55,48 L 62,42 L 68,52 L 78,46" stroke="#00e676" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.85" filter="drop-shadow(0 0 3px #00e676)"/>
+          </svg>
+          <span class="character-label">Gruff</span>
+        </div>
+
+      </div>
+      <div class="stem">
+        <div class="leaf left"></div>
+        <div class="leaf right"></div>
+      </div>
+      <div class="pot"></div>
+    </div>
+    
+    <button class="letter-trigger" id="openLetterBtn">✉️ Leer carta de amor</button>
+  </div>
+
+  <!-- MODAL CON EL TEXTO EXACTO Y EMOJIS BONITOS -->
+  <div class="modal-overlay" id="letterModal">
+    <div class="letter-card">
+      <button class="close-btn" id="closeLetterBtn">&times;</button>
+      <h2>Para Ti ❤️✨</h2>
+      <div class="letter-content">
+        <p>Este detallito lo hice con muchisiimoo amor para ti corazón 💖✨🧸💌</p>
+        <p>No pensaba llegar a acabar la carta hoy, pero gracias a esforzame logre terminar esta paginita, hoy vas a dar la prueba para la U espero que te vaya de lo mejor, tanto esfuerzo que hiciste ojalá y te sea recompensado corazón, y te salga un buen puntaje para las carreras que me dijistes ya sea una o la otra, pero sea lo que sea te felicito por todo lo que haz estudiado, si por mi fuera yo te hiciera que aprobaras las dos, claro si yo las calificara, te deseo lo mejor en todo lo que hagas hoy y siempre 🌸🎓✨🍀</p>
+        <p>Si llegas a ver esta carta quiero que sepas que te quiero muchisimooo por eso la hice, no pensé acabarla hoy por que llevaba un tiempo ya haciéndola y no parecía que la vaya a acabar con tantos errores que me aparecían en la página, pero todo es por ti corazón y hacer esto me vuelve muy feliz, espero que te guste esta cartita, si cualquier cosa o acción que haga te molesta solo dímelo y tratare de mejorar 🥺💜💻✨</p>
+        <p>Vi un poema muy bonito y es asi:</p>
+        <div class="poem-box">
+          "No eres un cuento,<br>
+          Ni una canción,<br>
+          Eres ese pensamiento,<br>
+          Que nunca salió de mi corazón." ❤️📜✨
+        </div>
+        <p style="text-align: right; margin-top: 15px; font-weight: bold;">
+          De este niño feo que te quiero un montón para ti corazón... 🥺💖🌸
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script>
+    const flower = document.getElementById('flower');
+    const flowerContainer = document.getElementById('flowerContainer');
+    const petals = flower.querySelectorAll('.petal');
+    const message = document.getElementById('message');
+    const ripple = document.getElementById('ripple');
+    const leaves = document.querySelectorAll('.leaf');
+    const tinkerbell = document.getElementById('tinkerbell');
+    const periwinkle = document.getElementById('periwinkle');
+    const gruff = document.getElementById('gruff');
+    
+    const btnPurple = document.getElementById('btnPurple');
+    const btnPink = document.getElementById('btnPink');
+    const btnSunset = document.getElementById('btnSunset');
+    const btnNight = document.getElementById('btnNight');
+    const btnWinter = document.getElementById('btnWinter');
+    
+    const openLetterBtn = document.getElementById('openLetterBtn');
+    const closeLetterBtn = document.getElementById('closeLetterBtn');
+    const letterModal = document.getElementById('letterModal');
+    const poemCloud = document.getElementById('poemCloud');
+
+    let open = false;
+    let currentTheme = 'purple';
+    let phraseIndex = 0;
+    let phraseInterval = null;
+    let poemIndex = 0;
+    let poemInterval = null;
+
+    const phrases = [
+      "Eres mi ñiñita hermosha ❤️",
+      "Un detalle en tu color favorito 💜✨",
+      "Cada que hablo o te escribo soy muy feliz corazón ✨💬💌💖",
+      "¡Te quiero muchísimo, mi ñiñita hermosha! 💕",
+      "Gracias por cada cosa que me dices lo valoro demasiado eres maravillosa mi niña hermosa ✨🥺💌💖",
+      "Eres lo más lindo que me ha pasado, mi ñiña bella 💐"
+    ];
+
+    const poems = [
+      "Si las estrellas hablasen, le contarían al universo lo mágica que eres, mi ñiñita hermosha. ✨🌸",
+      "No existe flor en ningún jardín tan dulce y perfecta como tú, mi niña hermosa. 🌷💌",
+      "Un solo mensaje tuyo alegra todo mi día y llena de paz mi corazón. 💜☁️",
+      "El mundo es mil veces más bonito desde que llegaste a mi vida, mi ñiña bella. 🌤️💗",
+      "Cada latido mío guarda un pedacito de tu ternura, mi ñiñita hermosha. 💓✨",
+      "Gracias por existir y ser el sol que ilumina mi camino, corazón. ☀️💐"
+    ];
+
+    const cloudPositions = [
+      { top: '8%', left: '-18%' },
+      { top: '12%', right: '-18%' },
+      { top: '48%', left: '-20%' },
+      { top: '45%', right: '-20%' }
+    ];
+
+    function setTheme(themeName) {
+      currentTheme = themeName;
+      document.body.className = '';
+      document.body.classList.add(`theme-${themeName}`);
+
+      btnPurple.classList.toggle('active', themeName === 'purple');
+      btnPink.classList.toggle('active', themeName === 'pink');
+      btnSunset.classList.toggle('active', themeName === 'sunset');
+      btnNight.classList.toggle('active', themeName === 'night');
+      btnWinter.classList.toggle('active', themeName === 'winter');
+    }
+
+    btnPurple.addEventListener('click', () => setTheme('purple'));
+    btnPink.addEventListener('click', () => setTheme('pink'));
+    btnSunset.addEventListener('click', () => setTheme('sunset'));
+    btnNight.addEventListener('click', () => setTheme('night'));
+    btnWinter.addEventListener('click', () => setTheme('winter'));
+
+    function cyclePoemCloud() {
+      const currentPoem = poems[poemIndex];
+      const pos = cloudPositions[poemIndex % cloudPositions.length];
+      poemIndex = (poemIndex + 1) % poems.length;
+
+      gsap.to(poemCloud, {
+        opacity: 0,
+        scale: 0.8,
+        duration: 0.6,
+        onComplete: () => {
+          poemCloud.textContent = currentPoem;
+          poemCloud.style.top = pos.top || 'auto';
+          poemCloud.style.bottom = pos.bottom || 'auto';
+          poemCloud.style.left = pos.left || 'auto';
+          poemCloud.style.right = pos.right || 'auto';
+
+          gsap.fromTo(poemCloud, 
+            { opacity: 0, scale: 0.7, y: 10 },
+            { opacity: 1, scale: 1, y: 0, duration: 1, ease: "back.out(1.2)" }
+          );
+
+          gsap.to(poemCloud, {
+            opacity: 0,
+            scale: 0.85,
+            duration: 0.8,
+            delay: 3.4,
+            ease: "power2.in"
+          });
+        }
+      });
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      const { innerWidth, innerHeight } = window;
+      const x = (e.clientX - innerWidth / 2) / (innerWidth / 2);
+      const y = (e.clientY - innerHeight / 2) / (innerHeight / 2);
+
+      gsap.to(flowerContainer, {
+        rotationY: x * 10,
+        rotationX: -y * 10,
+        ease: "power1.out",
+        duration: 0.5
+      });
+    });
+
+    openLetterBtn.addEventListener('click', () => letterModal.classList.add('active'));
+    closeLetterBtn.addEventListener('click', () => letterModal.classList.remove('active'));
+    letterModal.addEventListener('click', (e) => {
+      if (e.target === letterModal) letterModal.classList.remove('active');
+    });
+
+    gsap.to(petals, {
+      scale: 1.04,
+      duration: 2.5,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut",
+      stagger: 0.08
+    });
+
+    leaves.forEach((leaf, i) => {
+      gsap.to(leaf, {
+        rotation: i === 0 ? -30 : 30,
+        duration: 3.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+    });
+
+    function showNextPhrase() {
+      message.textContent = phrases[phraseIndex];
+      phraseIndex = (phraseIndex + 1) % phrases.length;
+
+      gsap.to(message, { 
+        opacity: 1, 
+        y: -20, 
+        duration: 1, 
+        ease: "power2.out" 
+      });
+
+      gsap.to(message, { 
+        opacity: 0, 
+        y: -35, 
+        duration: 0.8, 
+        delay: 3.8, 
+        ease: "power2.in" 
+      });
+    }
+
+    flower.addEventListener('click', () => {
+      gsap.fromTo(ripple, 
+        { scale: 0, opacity: 0.8 }, 
+        { scale: 4, opacity: 0, duration: 0.8, ease: "power2.out" }
+      );
+
+      if (!open) {
+        gsap.to(petals, {
+          scale: "+=0.12",
+          duration: 1,
+          stagger: 0.03,
+          ease: "elastic.out(1.1, 0.4)"
+        });
+        
+        createPixieDustAroundFlower();
+        showNextPhrase();
+        phraseInterval = setInterval(showNextPhrase, 5000);
+
+        cyclePoemCloud();
+        poemInterval = setInterval(cyclePoemCloud, 5000);
+
+        open = true;
+
+      } else {
+        clearInterval(phraseInterval);
+        clearInterval(poemInterval);
+        
+        gsap.to(petals, {
+          scale: "-=0.12",
+          duration: 0.8,
+          stagger: 0.03,
+          ease: "power2.inOut"
+        });
+        gsap.to(message, { opacity: 0, y: 40, duration: 0.5 });
+        gsap.to(poemCloud, { opacity: 0, scale: 0.5, duration: 0.5 });
+        open = false;
+      }
+    });
+
+    /* --- FUNCIÓN DE BRILLOS AL HACER CLIC --- */
+    function createClickSparkles(element, colorsList) {
+      const rect = element.getBoundingClientRect();
+      const sparkleCount = 20;
+
+      for (let i = 0; i < sparkleCount; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.classList.add('sparkle-particle');
+
+        const posX = Math.random() * rect.width;
+        const posY = Math.random() * rect.height;
+
+        sparkle.style.left = `${posX}px`;
+        sparkle.style.top = `${posY}px`;
+
+        const destinationX = (Math.random() - 0.5) * 160;
+        const destinationY = (Math.random() - 0.5) * 160;
+
+        sparkle.style.setProperty('--x', `${destinationX}px`);
+        sparkle.style.setProperty('--y', `${destinationY}px`);
+
+        const randomColor = colorsList[Math.floor(Math.random() * colorsList.length)];
+        sparkle.style.backgroundColor = randomColor;
+        sparkle.style.boxShadow = `0 0 8px ${randomColor}, 0 0 16px #fff`;
+
+        element.appendChild(sparkle);
+
+        setTimeout(() => {
+          sparkle.remove();
+        }, 800);
+      }
+    }
+
+    /* TINKERBELL EVENTO CLICK */
+    tinkerbell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      
+      gsap.to(tinkerbell, {
+        rotation: "+=360",
+        scale: 1.3,
+        duration: 0.6,
+        ease: "back.out(1.7)",
+        onComplete: () => {
+          gsap.to(tinkerbell, { scale: 1, duration: 0.3 });
+        }
+      });
+
+      createPixieDustAroundFlower();
+      createClickSparkles(tinkerbell, ['#ffd700', '#ffffff', '#ffb3c1', '#7df9ff']);
+    });
+
+    /* PERIWINKLE EVENTO CLICK (MAGIA HELADA) */
+    periwinkle.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      gsap.to(periwinkle, {
+        rotation: "-=360",
+        scale: 1.3,
+        duration: 0.6,
+        ease: "back.out(1.7)",
+        onComplete: () => {
+          gsap.to(periwinkle, { scale: 1, duration: 0.3 });
+        }
+      });
+
+      createFrostSparkles();
+      createClickSparkles(periwinkle, ['#00e5ff', '#ffffff', '#80deea', '#e0f7fa']);
+    });
+
+    function createFrostSparkles() {
+      const rect = periwinkle.getBoundingClientRect();
+      const originX = rect.left + rect.width / 2;
+      const originY = rect.top + rect.height / 2;
+
+      const icons = ['❄️', '❄', '✨', '💎', '🤍'];
+
+      for (let i = 0; i < 16; i++) {
+        const dust = document.createElement('div');
+        dust.className = 'shaped-dust';
+        dust.innerHTML = icons[Math.floor(Math.random() * icons.length)];
+        dust.style.color = '#80deea';
+        document.body.appendChild(dust);
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 45 + Math.random() * 55;
+        const targetX = originX + Math.cos(angle) * dist;
+        const targetY = originY + Math.sin(angle) * dist;
+
+        gsap.set(dust, { 
+          x: originX, 
+          y: originY, 
+          scale: 0, 
+          opacity: 1 
+        });
+
+        gsap.to(dust, {
+          x: targetX,
+          y: targetY,
+          scale: 1.3,
+          opacity: 0,
+          duration: 1.1,
+          ease: "power2.out",
+          onComplete: () => dust.remove()
+        });
+      }
+    }
+
+    /* GRUFF EVENTO CLICK */
+    gruff.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      gsap.to(gruff, {
+        y: -12,
+        scale: 1.1,
+        duration: 0.3,
+        yoyo: true,
+        repeat: 1,
+        ease: "power1.out"
+      });
+
+      createGruffSparkles();
+      createClickSparkles(gruff, ['#00e676', '#76ff03', '#ffffff', '#b9f6ca']);
+    });
+
+    function createGruffSparkles() {
+      const rect = gruff.getBoundingClientRect();
+      const originX = rect.left + rect.width / 2;
+      const originY = rect.top + rect.height / 2;
+
+      const icons = ['⚡', '🟢', '✨', '🐾', '🌿'];
+
+      for (let i = 0; i < 14; i++) {
+        const dust = document.createElement('div');
+        dust.className = 'shaped-dust';
+        dust.innerHTML = icons[Math.floor(Math.random() * icons.length)];
+        dust.style.color = '#76ff03';
+        document.body.appendChild(dust);
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 45 + Math.random() * 55;
+        const targetX = originX + Math.cos(angle) * dist;
+        const targetY = originY + Math.sin(angle) * dist;
+
+        gsap.set(dust, { 
+          x: originX, 
+          y: originY, 
+          scale: 0, 
+          opacity: 1 
+        });
+
+        gsap.to(dust, {
+          x: targetX,
+          y: targetY,
+          scale: 1.3,
+          opacity: 0,
+          duration: 1.1,
+          ease: "power2.out",
+          onComplete: () => dust.remove()
+        });
+      }
+    }
+
+    function createPixieDustAroundFlower() {
+      const rect = flower.getBoundingClientRect();
+      const originX = rect.left + rect.width / 2;
+      const originY = rect.top + rect.height / 2;
+
+      const totalDust = 36;
+      const scale = 12.5;
+      
+      let icons = ['✨', '🌸', '💖', '🧚‍♀️', '✨', '💗', '👑'];
+      if (currentTheme === 'purple') icons = ['💜', '✨', '🌸', '🔮', '🧚‍♀️', '👑'];
+
+      for (let i = 0; i < totalDust; i++) {
+        const t = (i / totalDust) * (Math.PI * 2);
+        const xOffset = 16 * Math.pow(Math.sin(t), 3);
+        const yOffset = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+
+        const targetX = originX + (xOffset * scale);
+        const targetY = originY + (yOffset * scale);
+
+        const dust = document.createElement('div');
+        dust.className = 'shaped-dust';
+        dust.innerHTML = icons[Math.floor(Math.random() * icons.length)];
+        document.body.appendChild(dust);
+
+        gsap.set(dust, { 
+          x: originX, 
+          y: originY, 
+          scale: 0, 
+          opacity: 0,
+          rotation: Math.random() * 50 - 25
+        });
+
+        const timeline = gsap.timeline({
+          onComplete: () => dust.remove()
+        });
+
+        timeline.to(dust, {
+          x: targetX,
+          y: targetY - 40,
+          scale: 1.1 + Math.random() * 0.3,
+          opacity: 1,
+          duration: 0.8,
+          ease: "power2.out"
+        })
+        .to(dust, {
+          y: "+=60",
+          opacity: 0,
+          duration: 1.2,
+          ease: "sine.inOut"
+        });
+      }
+    }
+
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() { this.reset(); }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = (currentTheme === 'winter') ? -20 : canvas.height + 20;
+        this.size = Math.random() * 10 + 8;
+        this.speed = Math.random() * 1 + 0.3;
+        this.opacity = Math.random() * 0.5 + 0.3;
+        this.swingAngle = Math.random() * Math.PI * 2;
+      }
+
+      update() {
+        if (currentTheme === 'winter') {
+          this.y += this.speed;
+          if (this.y > canvas.height + 20) this.reset();
+        } else {
+          this.y -= this.speed;
+          if (this.y < -20) this.reset();
+        }
+        this.swingAngle += 0.02;
+        this.x += Math.sin(this.swingAngle) * 0.4;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.font = `${this.size}px serif`;
+
+        if (currentTheme === 'purple') ctx.fillText('🔮', this.x, this.y);
+        else if (currentTheme === 'winter') ctx.fillText('❄', this.x, this.y);
+        else if (currentTheme === 'night') ctx.fillText('✦', this.x, this.y);
+        else ctx.fillText('🌸', this.x, this.y);
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < 30; i++) particles.push(new Particle());
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+  </script>
+</body>
+</html>
